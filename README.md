@@ -15,7 +15,7 @@ C++ library with python interface to compute autocorrelations on the fly. Target
 - Uses OpenMP to take advantage of workstation hardware
   - Handles thread affinity on Windows for system with over 64 logical cores
 - Uses direct multiplications for small number of autocorrelations and convolutions with FFTW for large numbers.
-  - Identical results regardless of algorithm (corrects for the inter-fft_buffers correlations up to machine precision)
+  - Same results regardless of algorithm (corrects for the inter-fft_buffers correlations up to machine precision)
 - Can be fed blocks of data successively and compute the results afterwards (correlations across blocks are ignored)
 
 
