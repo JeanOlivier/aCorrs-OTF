@@ -417,7 +417,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
     
             // Accumulating rk, correcting for the missing data between fft_chunks
             for (j=0; j<k; j++){ 
-                rk_fft_local[j] += (mpreal)ibuff[j]; // fftwlen times too big for accumul_t
+                rk_fft_local[j] += (mpreal)ibuff[j]/(mpreal)fftwlen; 
                 // Exact correction for edges
                 for(int l = j; l<k; l++){
                     rk[l+1] += (accumul_t)buff[len-j-1]*(accumul_t)buff[len-j+l];
@@ -436,7 +436,8 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
     }
     // Accessing rk_mpfr directly for precision purpose
     for (int i=0; i<k; i++){
-        rk_mpfr[i] += (mpreal)rk_fft[i]/(mpreal)fftwlen; // Normalizing fewest times possible
+        rk_mpfr[i] += (mpreal)rk_fft[i];
+        rk_fft[i] = 0; // So it can be reused later on
     }
     // Leftover data! Probably too small benefit from parallelization.
     for (uint64_t i=size-size%len; i<size; i++){
