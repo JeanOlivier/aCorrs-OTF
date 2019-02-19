@@ -65,7 +65,7 @@ void manage_thread_affinity()
         HANDLE thandle = GetCurrentThread();
         bool result;
         
-        int set_group = tid%nbgroups; // We change group for each thread
+        WORD set_group = tid%nbgroups; // We change group for each thread
         int nbthreads = threads_per_groups[set_group]; // Nb of threads in group for affinity mask.
         GROUP_AFFINITY group = {((uint64_t)1<<nbthreads)-1, set_group}; // nbcores amount of 1 in binary
         
@@ -85,7 +85,7 @@ public:
     
     // Casting over different type sign is very slow, we avoid it.
     // (T)-1>0 is true only if T is unsigned
-    // Would work with int < 64bits but would be slower
+    // Would work with int < 64bits but would overflow faster
     typedef typename conditional<((T)-1>0), uint64_t, int64_t>::type accumul_t;
     
     // Math stuff 
@@ -393,7 +393,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
-            decltype(buffer) buff = buffer + i*len;
+            T *buff = buffer + i*len;
             // Filling buffers and accumulating m
             int j;
             for (j=0; j<len; j++){
@@ -410,7 +410,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
     
             // Accumulating rk, correcting for the missing data between fft_chunks
             for (j=0; j<k; j++){ 
-                rk[j] += (accumul_t)(0.5+(ibuff[j]/(double)fftwlen)); // 0.5 to round on cast.
+                rk[j] += (accumul_t)(ibuff[j]/(double)fftwlen);
                 // Exact correction for edges
                 for(int l = j; l<k; l++){
                     rk[l+1] += (accumul_t)buff[len-j-1]*(accumul_t)buff[len-j+l];

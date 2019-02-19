@@ -51,7 +51,7 @@ get_num_threads.argtypes=None
 
 # Autocorrelations
 class ACorrUpTo():
-    def __init__(self, k, data="uint8", fft=None, fftchunk=8192, k_fft=105):
+    def __init__(self, k, data="uint8", fft=None, fftchunk=8192, k_fft=115):
         if type(data) is ndarray:
             self.dtype = data.dtype.name
         else:
