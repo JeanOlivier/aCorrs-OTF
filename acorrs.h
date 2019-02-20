@@ -352,12 +352,9 @@ public:
     fftw_plan rev_plan;
     double *in;
     double *out;
-    mpreal *rk_fft;
 
     ACorrUpToFFT(int k, int len): ACorrUpTo<T>(k), len(len)
     {
-        // To avoid numerical errors and/or overflow because FFTW doesn't normalize by fftwlen
-        rk_fft = new mpreal [k](); // Parentheses initialize to zero
         // FFT length 
         fftwlen = 1<<(int)ceil(log2(2*len-1)); //TODO: Assert that k < len
         
@@ -382,8 +379,6 @@ public:
         // Deleting temp buffers
         fftw_free(in); 
         fftw_free(out);
-        delete[] rk_fft;
-    
     }
 };
 
@@ -396,7 +391,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         manage_thread_affinity();
         double *ibuff = fftw_alloc_real(fftwlen);
         double *obuff = fftw_alloc_real(fftwlen);
-        mpreal *rk_fft_local = new mpreal [k](); // Parentheses initialize to zero
+        double *rk_fft_local = new double [k](); // Parentheses initialize to zero
         
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
@@ -416,8 +411,9 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             fftw_execute_r2r(rev_plan, obuff, ibuff); // Forward FFT
     
             // Accumulating rk, correcting for the missing data between fft_chunks
-            for (j=0; j<k; j++){ 
-                rk_fft_local[j] += (mpreal)ibuff[j]/(mpreal)fftwlen; 
+            for (j=0; j<k; j++){
+                //rk_fft_local[j] += (double)ibuff[j];
+                rk_fft_local[j] += (double)ibuff[j]/(double)fftwlen;
                 // Exact correction for edges
                 for(int l = j; l<k; l++){
                     rk[l+1] += (accumul_t)buff[len-j-1]*(accumul_t)buff[len-j+l];
@@ -427,19 +423,14 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         // Manual reduction of rk_fft (omp supports Plain Old Data only)
         #pragma omp critical 
         for (int i=0; i<k; i++) {
-            rk_fft[i] += rk_fft_local[i];
+            rk[i] += (accumul_t)(rk_fft_local[i]);// /(double)fftwlen);
         }
         // Freeing memory
         fftw_free(ibuff);
         fftw_free(obuff);
         delete[] rk_fft_local;
     }
-    // Accessing rk_mpfr directly for precision purpose
-    for (int i=0; i<k; i++){
-        rk_mpfr[i] += (mpreal)rk_fft[i];
-        rk_fft[i] = 0; // So it can be reused later on
-    }
-    // Leftover data! Probably too small benefit from parallelization.
+    // Leftover data! Probably too small to benefit from parallelization.
     for (uint64_t i=size-size%len; i<size; i++){
         m += (accumul_t)buffer[i];
         for (int j=0; j<k; j++){
