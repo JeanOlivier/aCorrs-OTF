@@ -411,26 +411,25 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             fftw_execute_r2r(rev_plan, obuff, ibuff); // Forward FFT
     
             // Accumulating rk, correcting for the missing data between fft_chunks
-            for (j=0; j<k; j++){
-                //rk_fft_local[j] += (double)ibuff[j];
-                rk_fft_local[j] += (double)ibuff[j]/(double)fftwlen;
+            for (j=0; j<k; j++){ 
+                rk_fft_local[j] += ibuff[j]; 
                 // Exact correction for edges
                 for(int l = j; l<k; l++){
                     rk[l+1] += (accumul_t)buff[len-j-1]*(accumul_t)buff[len-j+l];
                 }
             }
         }
-        // Manual reduction of rk_fft (omp supports Plain Old Data only)
+        // Manual reduction of rk_fft_local to rk_mpfr (omp supports Plain Old Data only)
         #pragma omp critical 
         for (int i=0; i<k; i++) {
-            rk[i] += (accumul_t)(rk_fft_local[i]);// /(double)fftwlen);
+            rk_mpfr[i] += (mpreal)rk_fft_local[i]/(mpreal)fftwlen; // Accessing rk_mpfr directly for precision purpose
         }
         // Freeing memory
         fftw_free(ibuff);
         fftw_free(obuff);
         delete[] rk_fft_local;
     }
-    // Leftover data! Probably too small to benefit from parallelization.
+    // Leftover data! Probably too small benefit from parallelization.
     for (uint64_t i=size-size%len; i<size; i++){
         m += (accumul_t)buffer[i];
         for (int j=0; j<k; j++){
