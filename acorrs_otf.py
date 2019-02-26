@@ -2,24 +2,27 @@
 # -*- coding: utf-8 -*-
 
 import ctypes
-import os
+import sys, os
 import platform
 from numpy.ctypeslib import ndpointer
 from numpy import zeros, fromstring, ndarray, ceil, log2
 from numpy import int8, uint8, int16, uint16
 from ctypes import c_uint8, c_int8, c_uint16, c_int16, c_double, c_int, c_uint64
 
+libpath = os.path.abspath(os.path.dirname(__file__))
+if not libpath in os.environ['PATH']:
+    os.environ['PATH'] = libpath+os.environ['PATH']
+
 plat_info = dict(plat=platform.system())
 if plat_info['plat'] == 'Windows':
-    plat_info['lib'] = './acorrs.dll'
+    plat_info['lib'] = os.path.join(libpath, 'acorrs.dll')
     plat_info['com'] = 'make acorrs.dll'
     # Adding cygwin libs path for windows
-    libpath = r'C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\bin\;'
+    libspath = r'C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\bin\;'
     if libpath not in os.environ['PATH']:
-        os.environ['PATH'] = libpath+os.environ['PATH']
-    
+        os.environ['PATH'] = libspath+os.environ['PATH']   
 else:
-    plat_info['lib'] = './acorrs.so'
+    plat_info['lib'] = os.path.join(libpath, 'acorrs.so')
     plat_info['com'] = 'make acorrs.so'
 
 

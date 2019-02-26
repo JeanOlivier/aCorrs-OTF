@@ -422,14 +422,15 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         // Manual reduction of rk_fft_local to rk_mpfr (omp supports Plain Old Data only)
         #pragma omp critical 
         for (int i=0; i<k; i++) {
-            rk_mpfr[i] += (mpreal)rk_fft_local[i]/(mpreal)fftwlen; // Accessing rk_mpfr directly for precision purpose
+            // Accessing rk_mpfr directly for precision purpose
+            rk_mpfr[i] += (mpreal)rk_fft_local[i]/(mpreal)fftwlen; 
         }
         // Freeing memory
         fftw_free(ibuff);
         fftw_free(obuff);
         delete[] rk_fft_local;
     }
-    // Leftover data! Probably too small benefit from parallelization.
+    // Leftover data! Probably too small to benefit from parallelization.
     for (uint64_t i=size-size%len; i<size; i++){
         m += (accumul_t)buffer[i];
         for (int j=0; j<k; j++){
