@@ -11,16 +11,16 @@ from ctypes import c_uint8, c_int8, c_uint16, c_int16, c_double, c_int, c_uint64
 
 libpath = os.path.abspath(os.path.dirname(__file__))
 if not libpath in os.environ['PATH']:
-    os.environ['PATH'] = libpath+os.environ['PATH']
+    os.environ['PATH'] = libpath+os.path.pathsep+os.environ['PATH']
 
 plat_info = dict(plat=platform.system())
 if plat_info['plat'] == 'Windows':
     plat_info['lib'] = os.path.join(libpath, 'acorrs.dll')
     plat_info['com'] = 'make acorrs.dll'
     # Adding cygwin libs path for windows
-    libspath = r'C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\bin\;'
-    if libpath not in os.environ['PATH']:
-        os.environ['PATH'] = libspath+os.environ['PATH']   
+    libspath = 'C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\bin'
+    if libspath not in os.environ['PATH']:
+        os.environ['PATH'] = libspath+os.path.pathsep+os.environ['PATH']   
 else:
     plat_info['lib'] = os.path.join(libpath, 'acorrs.so')
     plat_info['com'] = 'make acorrs.so'
