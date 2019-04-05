@@ -41,7 +41,7 @@ void declare_class(py::module &m, std::string typestr) {
                 tmp = self.get_aCorrs();
             }
             else {
-            tmp = self.aCorrs;
+                tmp = self.aCorrs;
             }
             return py::array_t<double>(
                 {self.k,},          // shape
@@ -107,7 +107,7 @@ void declare_fftclass(py::module &m, std::string typestr) {
                 tmp = self.get_aCorrs();
             }
             else {
-            tmp = self.aCorrs;
+                tmp = self.aCorrs;
             }
             return py::array_t<double>(
                 {self.k,},          // shape
