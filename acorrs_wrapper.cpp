@@ -36,21 +36,32 @@ void declare_class(py::module &m, std::string typestr) {
         )
         
         .def_property_readonly("res", [](Class& self){
+            double *tmp; 
+            if (self.n){
+                tmp = self.get_aCorrs();
+            }
+            else {
+            tmp = self.aCorrs;
+            }
             return py::array_t<double>(
                 {self.k,},          // shape
                 {sizeof(double),},  // C-style contiguous strides for double
-                self.get_aCorrs(),  // the data pointer
+                tmp,                // the data pointer
                 NULL);              // numpy array references this parent
             }
         )
         .def_property_readonly("rk", [](Class& self){
             double *ret = new double [self.k]();
+            py::capsule free_when_done(ret, [](void *f) {
+                double *ret = reinterpret_cast<double *>(f);
+                delete[] ret;
+                });
             for (int i=0; i<self.k; i++){ret[i] = (double)self.rk_mpfr[i];}
             return py::array_t<double>(
                 {self.k,},          // shape
                 {sizeof(double),},  // C-style contiguous strides for double
-                ret,  // the data pointer
-                NULL);              // numpy array references this parent
+                ret,                // the data pointer
+                free_when_done);    // numpy array references this parent
             }
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
@@ -91,21 +102,32 @@ void declare_fftclass(py::module &m, std::string typestr) {
         )
         
         .def_property_readonly("res", [](Class& self){
+            double *tmp; 
+            if (self.n){
+                tmp = self.get_aCorrs();
+            }
+            else {
+            tmp = self.aCorrs;
+            }
             return py::array_t<double>(
                 {self.k,},          // shape
                 {sizeof(double),},  // C-style contiguous strides for double
-                self.get_aCorrs(),  // the data pointer
+                tmp,                // the data pointer
                 NULL);              // numpy array references this parent
             }
         )
         .def_property_readonly("rk", [](Class& self){
             double *ret = new double [self.k]();
+            py::capsule free_when_done(ret, [](void *f) {
+                double *ret = reinterpret_cast<double *>(f);
+                delete[] ret;
+                });
             for (int i=0; i<self.k; i++){ret[i] = (double)self.rk_mpfr[i];}
             return py::array_t<double>(
                 {self.k,},          // shape
                 {sizeof(double),},  // C-style contiguous strides for double
-                ret,  // the data pointer
-                NULL);              // numpy array references this parent
+                ret,                // the data pointer
+                free_when_done);    // numpy array references this parent
             }
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
