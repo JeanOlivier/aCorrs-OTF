@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, platform
-from numpy import ndarray
+from numpy import ndarray, ceil, log2
 
 # Setting up the proper libraries and paths, mainly for Windows support
 libpath = os.path.abspath(os.path.dirname(__file__))
