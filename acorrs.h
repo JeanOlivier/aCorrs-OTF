@@ -29,6 +29,7 @@
 #include <ctime>
 #include <limits>
 
+
 #ifdef _WIN32_WINNT
     #include "mpreal.h"
 #else
@@ -397,7 +398,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         manage_thread_affinity();
         double *ibuff = fftw_alloc_real(fftwlen);
         double *obuff = fftw_alloc_real(fftwlen);
-        double *rk_fft_local = new double [k](); // Parentheses initialize to zero
+        double *rk_fft_local = new double [fftwlen](); // Parentheses initialize to zero
         
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
@@ -411,25 +412,30 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             for(; j<fftwlen; j++){
                 ibuff[j] = 0; // Needs zeroing, used as scratch pad
             }
-    
+        
             fftw_execute_r2r(fwd_plan, ibuff, obuff); // Forward FFT
             halfcomplex_norm2(obuff, fftwlen); // obuff*obuff.conj() element-wise
-            fftw_execute_r2r(rev_plan, obuff, ibuff); // Forward FFT
+            // Reverse FFT used to be here instead of outside this loop
     
             // Accumulating rk, correcting for the missing data between fft_chunks
             for (j=0; j<k; j++){ 
-                rk_fft_local[j] += ibuff[j]; 
+                rk_fft_local[j] += obuff[j]; 
                 // Exact correction for edges
                 for(int l = j; l<k; l++){
                     rk[l+1] += (accumul_t)buff[len-j-1]*(accumul_t)buff[len-j+l];
                 }
             }
+            // Filling rk_fft_local beyond k
+            for (; j<fftwlen; j++){
+                rk_fft_local[j] += obuff[j];
+            }
         }
-        // Manual reduction of rk_fft_local to rk_mpfr (omp supports Plain Old Data only)
-        #pragma omp critical 
-        for (int i=0; i<k; i++) {
-            // Accessing rk_mpfr directly for precision purpose
-            rk_mpfr[i] += (mpreal)rk_fft_local[i]/(mpreal)fftwlen; 
+        // Here's the optimization. Thanks to FFT's linearity!
+        fftw_execute_r2r(rev_plan, rk_fft_local, obuff); // Reverse FFT
+        // Manual reduction of ifft(rk_fft_local) to rk_mpfr
+        #pragma omp critical
+        for (int i=0; i<k; i++){
+            rk_mpfr[i] += (mpreal)obuff[i]/(mpreal)fftwlen;
         }
         // Freeing memory
         fftw_free(ibuff);
