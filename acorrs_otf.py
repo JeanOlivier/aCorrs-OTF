@@ -96,7 +96,7 @@ def _get_scaling(k, dtype, size, verbose=True, verb_prefix='', data_func=get_ran
         assert allclose(ad,af), "Direct/FFT results aren't close!"
         timesd += [td]
         timesf += [tf]
-        errlmean += [((af-ad)/ad).mean()]
+        errlmean += [(abs(af-ad)/ad).mean()]
         errlmax += [(abs(af-ad)/ad).max()]
 
 
