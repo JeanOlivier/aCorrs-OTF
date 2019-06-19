@@ -51,22 +51,23 @@ void declare_class(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rk", [](Class& self){
-            double *ret = new double [self.k]();
+            typedef typename std::remove_pointer<decltype(self.rk)>::type accumul_t;
+            accumul_t *ret = new accumul_t [self.k]();
             py::capsule free_when_done(ret, [](void *f) {
-                double *ret = reinterpret_cast<double *>(f);
+                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
                 delete[] ret;
                 });
-            for (int i=0; i<self.k; i++){ret[i] = (double)self.rk_mpfr[i];}
-            return py::array_t<double>(
+            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.rk_mpfr[i];}
+            return py::array_t<accumul_t>(
                 {self.k,},          // shape
-                {sizeof(double),},  // C-style contiguous strides for double
+                {sizeof(accumul_t),},  // C-style contiguous strides for double
                 ret,                // the data pointer
                 free_when_done);    // numpy array references this parent
             }
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
-        .def_property_readonly("m", [](Class& self) {return (double) self.m_mpfr;})
-        .def_property_readonly("n", [](Class& self) {return (double) self.n_mpfr;})
+        .def_property_readonly("m", [](Class& self) {return (decltype(self.m)) self.m_mpfr;})
+        .def_property_readonly("n", [](Class& self) {return (decltype(self.n)) self.n_mpfr;})
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
         .def_property_readonly("chunk_size", [](Class& self) {return self.chunk_size;})
         .def_property_readonly("block_processed", [](Class& self) {return self.block_processed;})
@@ -117,24 +118,25 @@ void declare_fftclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rk", [](Class& self){
-            double *ret = new double [self.k]();
+            typedef typename std::remove_pointer<decltype(self.rk)>::type accumul_t;
+            accumul_t *ret = new accumul_t [self.k]();
             py::capsule free_when_done(ret, [](void *f) {
-                double *ret = reinterpret_cast<double *>(f);
+                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
                 delete[] ret;
                 });
-            for (int i=0; i<self.k; i++){ret[i] = (double)self.rk_mpfr[i];}
-            return py::array_t<double>(
+            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.rk_mpfr[i];}
+            return py::array_t<accumul_t>(
                 {self.k,},          // shape
-                {sizeof(double),},  // C-style contiguous strides for double
+                {sizeof(accumul_t),},  // C-style contiguous strides for double
                 ret,                // the data pointer
                 free_when_done);    // numpy array references this parent
             }
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
-        .def_property_readonly("m", [](Class& self) {return (double) self.m_mpfr;})
-        .def_property_readonly("n", [](Class& self) {return (double) self.n_mpfr;})
-        .def_property_readonly("len", [](Class& self) {return (double) self.len;})
-        .def_property_readonly("fftwlen", [](Class& self) {return (double) self.fftwlen;})
+        .def_property_readonly("m", [](Class& self) {return (decltype(self.m)) self.m_mpfr;})
+        .def_property_readonly("n", [](Class& self) {return (decltype(self.n)) self.n_mpfr;})
+        .def_property_readonly("len", [](Class& self) {return self.len;})
+        .def_property_readonly("fftwlen", [](Class& self) {return self.fftwlen;})
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
         .def_property_readonly("chunk_size", [](Class& self) {return self.chunk_size;})
         .def_property_readonly("block_processed", [](Class& self) {return self.block_processed;})

@@ -268,7 +268,7 @@ public:
         mpreal n_k;
         for (int i=0; i<k; i++){
             n_k = n_mpfr - (mpreal)(i*block_processed);
-            aCorrs_mpfr[i] = rk_mpfr[i]/n_k - (m_mpfr-bk_mpfr[i])*(m_mpfr-gk_mpfr[i])/(n_k*n_k);
+            aCorrs_mpfr[i] = (rk_mpfr[i] - (m_mpfr-bk_mpfr[i])*(m_mpfr-gk_mpfr[i])/n_k)/n_k;
         }
         return aCorrs_mpfr; // Return pointer to array
     }
