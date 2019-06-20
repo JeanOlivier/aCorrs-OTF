@@ -6,6 +6,7 @@ import numpy as np
 from numpy import uint8, int8, uint16, int16, double
 from numpy import ndarray, ceil, log2, iinfo, zeros, allclose, arange, array 
 from numpy import floor, log10, savez_compressed, load
+from matplotlib import pyplot as plt
 
 # Setting up the proper libraries and paths, mainly for Windows support
 libpath = os.path.abspath(os.path.dirname(__file__))
@@ -96,8 +97,8 @@ def _get_scaling(k, dtype, size, verbose=True, verb_prefix='', data_func=get_ran
         assert allclose(ad,af), "Direct/FFT results aren't close!"
         timesd += [td]
         timesf += [tf]
-        errlmean += [(abs(af-ad)/ad).mean()]
-        errlmax += [(abs(af-ad)/ad).max()]
+        errlmean += [(abs((af-ad)/ad)).mean()]
+        errlmax += [(abs((af-ad)/ad)).max()]
 
 
     return array([timesd, timesf, errlmean, errlmax, ks])
