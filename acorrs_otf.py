@@ -3,7 +3,6 @@
 
 import sys, os, platform, time
 import numpy as np
-import matplotlib.pyplot as plt
 from numpy import uint8, int8, uint16, int16, double
 from numpy import ndarray, ceil, log2, iinfo, zeros, allclose, arange, array 
 from numpy import floor, log10, savez_compressed, load
