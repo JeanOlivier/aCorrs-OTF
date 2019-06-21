@@ -69,7 +69,7 @@ def timefunc(fct, *args, **kwargs):
 
 def get_rand_array(dtype,length):
     i = iinfo(dtype)
-    return np.random.randint(low=i.min, high=i.max, size=(1, length), dtype=dtype)
+    return np.random.randint(low=i.min, high=i.max+1, size=(1, length), dtype=dtype)
 
 
 def _get_scaling(k, dtype, size, verbose=True, verb_prefix='', data_func=get_rand_array):
