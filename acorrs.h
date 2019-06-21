@@ -179,9 +179,10 @@ public:
         #pragma omp parallel
         {
             manage_thread_affinity();
-            #pragma omp for reduction(+:m), reduction(+:rk[:k])
+            #pragma omp for simd reduction(+:m), reduction(+:rk[:k])
             for (uint64_t i=0; i<size; i++){
                 m += (accumul_t)buffer[i];
+                #pragma omp ordered simd
                 for (int j=0; j<k; j++){
                     rk[j] += (accumul_t)buffer[i]*(accumul_t)buffer[i+j];
                 }
@@ -398,7 +399,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         manage_thread_affinity();
         double *ibuff = fftw_alloc_real(fftwlen);
         double *obuff = fftw_alloc_real(fftwlen);
-        double *rk_fft_local = new double [fftwlen](); // Parentheses initialize to zero
+        double *rk_fft_local = fftw_alloc_real(fftwlen);
         
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
@@ -440,7 +441,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         // Freeing memory
         fftw_free(ibuff);
         fftw_free(obuff);
-        delete[] rk_fft_local;
+        fftw_free(rk_fft_local);
     }
     // Leftover data! Probably too small to benefit from parallelization.
     for (uint64_t i=size-size%len; i<size; i++){
