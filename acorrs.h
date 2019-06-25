@@ -350,7 +350,7 @@ public:
     // Base class stuff
     typedef typename ACorrUpTo<T>::accumul_t accumul_t;
     accumul_t *rk = ACorrUpTo<T>::rk;
-    accumul_t &m = ACorrUpTo<T>::m;
+    accumul_t &m = ACorrUpTo<T>::m; // Some voodoo here; needed for openmp reduction?
     int &k = ACorrUpTo<T>::k;
     mpreal *rk_mpfr = ACorrUpTo<T>::rk_mpfr;
     // FFT(W) specific stuff
@@ -400,6 +400,9 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         double *ibuff = fftw_alloc_real(fftwlen);
         double *obuff = fftw_alloc_real(fftwlen);
         double *rk_fft_local = fftw_alloc_real(fftwlen);
+        for (int i=0; i<fftwlen; i++){
+            rk_fft_local[i] = 0;
+        }
         
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
@@ -436,7 +439,9 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         // Manual reduction of ifft(rk_fft_local) to rk_mpfr
         #pragma omp critical
         for (int i=0; i<k; i++){
-            rk_mpfr[i] += (mpreal)obuff[i]/(mpreal)fftwlen;
+            // rk_mpfr would be an integer if not for floating point errors 
+            // outter round might be sufficient
+            rk_mpfr[i] += (mpreal)round(round(obuff[i])/(mpreal)fftwlen); 
         }
         // Freeing memory
         fftw_free(ibuff);
