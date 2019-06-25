@@ -65,6 +65,36 @@ void declare_class(py::module &m, std::string typestr) {
                 free_when_done);    // numpy array references this parent
             }
         )
+        .def_property_readonly("bk", [](Class& self){
+            typedef typename std::remove_pointer<decltype(self.bk)>::type accumul_t;
+            accumul_t *ret = new accumul_t [self.k]();
+            py::capsule free_when_done(ret, [](void *f) {
+                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
+                delete[] ret;
+                });
+            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.bk_mpfr[i];}
+            return py::array_t<accumul_t>(
+                {self.k,},          // shape
+                {sizeof(accumul_t),},  // C-style contiguous strides for double
+                ret,                // the data pointer
+                free_when_done);    // numpy array references this parent
+            }
+        )
+        .def_property_readonly("gk", [](Class& self){
+            typedef typename std::remove_pointer<decltype(self.gk)>::type accumul_t;
+            accumul_t *ret = new accumul_t [self.k]();
+            py::capsule free_when_done(ret, [](void *f) {
+                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
+                delete[] ret;
+                });
+            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.gk_mpfr[i];}
+            return py::array_t<accumul_t>(
+                {self.k,},          // shape
+                {sizeof(accumul_t),},  // C-style contiguous strides for double
+                ret,                // the data pointer
+                free_when_done);    // numpy array references this parent
+            }
+        )
         .def_property_readonly("k", [](Class& self) {return self.k;})
         .def_property_readonly("m", [](Class& self) {return (decltype(self.m)) self.m_mpfr;})
         .def_property_readonly("n", [](Class& self) {return (decltype(self.n)) self.n_mpfr;})
@@ -125,6 +155,36 @@ void declare_fftclass(py::module &m, std::string typestr) {
                 delete[] ret;
                 });
             for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.rk_mpfr[i];}
+            return py::array_t<accumul_t>(
+                {self.k,},          // shape
+                {sizeof(accumul_t),},  // C-style contiguous strides for double
+                ret,                // the data pointer
+                free_when_done);    // numpy array references this parent
+            }
+        )
+        .def_property_readonly("bk", [](Class& self){
+            typedef typename std::remove_pointer<decltype(self.bk)>::type accumul_t;
+            accumul_t *ret = new accumul_t [self.k]();
+            py::capsule free_when_done(ret, [](void *f) {
+                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
+                delete[] ret;
+                });
+            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.bk_mpfr[i];}
+            return py::array_t<accumul_t>(
+                {self.k,},          // shape
+                {sizeof(accumul_t),},  // C-style contiguous strides for double
+                ret,                // the data pointer
+                free_when_done);    // numpy array references this parent
+            }
+        )
+        .def_property_readonly("gk", [](Class& self){
+            typedef typename std::remove_pointer<decltype(self.gk)>::type accumul_t;
+            accumul_t *ret = new accumul_t [self.k]();
+            py::capsule free_when_done(ret, [](void *f) {
+                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
+                delete[] ret;
+                });
+            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.gk_mpfr[i];}
             return py::array_t<accumul_t>(
                 {self.k,},          // shape
                 {sizeof(accumul_t),},  // C-style contiguous strides for double
