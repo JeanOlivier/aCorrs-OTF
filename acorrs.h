@@ -403,6 +403,10 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         for (int i=0; i<fftwlen; i++){
             rk_fft_local[i] = 0;
         }
+
+        // Each thread accumulates at most counter_max iterations to minimize errors
+        int counter = 0;
+        int counter_max = 512;
         
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
@@ -433,15 +437,35 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             for (; j<fftwlen; j++){
                 rk_fft_local[j] += obuff[j];
             }
+            counter++;
+            if (counter==counter_max){
+                // Here's the optimization. Thanks to FFT's linearity!
+                fftw_execute_r2r(rev_plan, rk_fft_local, obuff); // Reverse FFT
+                // Manual reduction of ifft(rk_fft_local) to rk_mpfr
+                #pragma omp critical
+                for (int i=0; i<k; i++){
+                    // rk_mpfr would be an integer if not for floating point errors 
+                    // outter round might be sufficient, rint_round rounds .5 away from 0
+                    rk_mpfr[i] += mpfr::rint_round(mpfr::rint_round((mpreal)obuff[i])/(mpreal)fftwlen); 
+                }
+                // Zerioing for next iteration
+                for (int i=0; i<fftwlen; i++){
+                    rk_fft_local[i] = 0;
+                }
+
+                counter = 0;
+            }
         }
-        // Here's the optimization. Thanks to FFT's linearity!
-        fftw_execute_r2r(rev_plan, rk_fft_local, obuff); // Reverse FFT
-        // Manual reduction of ifft(rk_fft_local) to rk_mpfr
-        #pragma omp critical
-        for (int i=0; i<k; i++){
-            // rk_mpfr would be an integer if not for floating point errors 
-            // outter round might be sufficient, rint_round rounds .5 away from 0
-            rk_mpfr[i] += mpfr::rint_round(mpfr::rint_round((mpreal)obuff[i])/(mpreal)fftwlen); 
+        if (counter != 0){
+            // Here's the optimization. Thanks to FFT's linearity!
+            fftw_execute_r2r(rev_plan, rk_fft_local, obuff); // Reverse FFT
+            // Manual reduction of ifft(rk_fft_local) to rk_mpfr
+            #pragma omp critical
+            for (int i=0; i<k; i++){
+                // rk_mpfr would be an integer if not for floating point errors 
+                // outter round might be sufficient, rint_round rounds .5 away from 0
+                rk_mpfr[i] += mpfr::rint_round(mpfr::rint_round((mpreal)obuff[i])/(mpreal)fftwlen); 
+            }
         }
         // Freeing memory
         fftw_free(ibuff);
