@@ -440,8 +440,8 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         #pragma omp critical
         for (int i=0; i<k; i++){
             // rk_mpfr would be an integer if not for floating point errors 
-            // outter round might be sufficient
-            rk_mpfr[i] += round(round((mpreal)obuff[i])/(mpreal)fftwlen); 
+            // outter round might be sufficient, rint_round rounds .5 away from 0
+            rk_mpfr[i] += mpfr::rint_round(mpfr::rint_round((mpreal)obuff[i])/(mpreal)fftwlen); 
         }
         // Freeing memory
         fftw_free(ibuff);
