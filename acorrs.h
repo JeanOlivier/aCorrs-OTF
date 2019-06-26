@@ -441,7 +441,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
         for (int i=0; i<k; i++){
             // rk_mpfr would be an integer if not for floating point errors 
             // outter round might be sufficient
-            rk_mpfr[i] += (mpreal)round(round(obuff[i])/(mpreal)fftwlen); 
+            rk_mpfr[i] += round(round((mpreal)obuff[i])/(mpreal)fftwlen); 
         }
         // Freeing memory
         fftw_free(ibuff);
