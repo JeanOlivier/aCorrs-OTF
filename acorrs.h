@@ -305,8 +305,22 @@ public:
 
    
     // Max chunk_size to avoid overflow: chunk_size*buff_max² == accumul_max
+    // Relevant quantities are max(accumul_t) and max(abs(min(buff)), max(buff))
+    // e.g. int16 buff spanning -2^15:2^15-1 == -32768:32767 in int64 accumulator:
+    //   - max positive buff squared value is (-2^15)^2 = 2^30 = 1073741824
+    //   - max negative buff squared value is -2^15*(2^15-1) = -2^30+2^15 = -1073709056
+    //   - accumulator max positive value is 2^63-1 -> (2^63-1)/2^30 = (2^33 - 1) + (1 - 2^-30)
+    //       - With result stated as a positive sum of the integer and fractional parts
+    //       - Casting back to int64 yields 2^33-1 = 8589934591
+    //   - accumulator max negative value is -2^63 
+    //          -> -2^63/(-2^15*(2^15-1) = 2^33/(1-2^-15) = (2^33+2**18)/(1-2**-30) 
+    //          -> 2^33 + 2^18 + epsilon (first order Taylor, positive epsilon tends to 0)
+    //       - Casting back to int64 yields 2^33 + 2^18 + 0 = 8590196736 > 8589934591
+    //   - The chunk_size is thus the smallest results: 8589934591
+    // e.g. uint16 spanning 0:2^16 in uint64 accumulator
+    //   - Similarly: 2^64-1/(2^16-1)^2 = 2^32 + 2^17 -1 + 4 + epsilon -> 4295098371
     uint64_t compute_chunk_size(){
-        uint64_t buff_max = numeric_limits<T>::max();
+        uint64_t buff_max = max(abs(numeric_limits<T>::min()), abs(numeric_limits<T>::max()));
         uint64_t accumul_max = numeric_limits<accumul_t>::max();
         uint64_t ret = accumul_max/(buff_max*buff_max);
         return ret; // Int division removes fractional possibility
@@ -439,6 +453,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             }
             counter++;
             if (counter==counter_max){
+                counter = 0;
                 // Here's the optimization. Thanks to FFT's linearity!
                 fftw_execute_r2r(rev_plan, rk_fft_local, obuff); // Reverse FFT
                 // Manual reduction of ifft(rk_fft_local) to rk_mpfr
@@ -448,12 +463,10 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
                     // outter round might be sufficient, rint_round rounds .5 away from 0
                     rk_mpfr[i] += mpfr::rint_round(mpfr::rint_round((mpreal)obuff[i])/(mpreal)fftwlen); 
                 }
-                // Zerioing for next iteration
+                // Zeroing for next iteration
                 for (int i=0; i<fftwlen; i++){
                     rk_fft_local[i] = 0;
                 }
-
-                counter = 0;
             }
         }
         if (counter != 0){
