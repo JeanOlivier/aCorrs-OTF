@@ -318,7 +318,7 @@ public:
     //       - Casting back to int64 yields 2^33 + 2^18 + 0 = 8590196736 > 8589934591
     //   - The chunk_size is thus the smallest results: 8589934591
     // e.g. uint16 spanning 0:2^16 in uint64 accumulator
-    //   - Similarly: 2^64-1/(2^16-1)^2 = 2^32 + 2^17 -1 + 4 + epsilon -> 4295098371
+    //   - Similarly: 2^64-1/(2^16-1)^2 = 2^32 + 2^17 - 1 + 4 + epsilon -> 4295098371
     uint64_t compute_chunk_size(){
         uint64_t buff_max = max(abs(numeric_limits<T>::min()), abs(numeric_limits<T>::max()));
         uint64_t accumul_max = numeric_limits<accumul_t>::max();
@@ -374,6 +374,7 @@ public:
     fftw_plan rev_plan;
     double *in;
     double *out;
+    int counter_max;
 
     ACorrUpToFFT(int k, int len): ACorrUpTo<T>(k), len(len)
     {
@@ -388,9 +389,32 @@ public:
         out = fftw_alloc_real(fftwlen);
         fwd_plan = fftw_plan_r2r_1d(fftwlen, in, out, FFTW_R2HC, FFTW_EXHAUSTIVE);
         rev_plan = fftw_plan_r2r_1d(fftwlen, in, out, FFTW_HC2R, FFTW_EXHAUSTIVE);
+
+        // Max number of double accumulation before we get errors on correlations
+        counter_max = compute_accumul_max();
     }
 
     inline void accumulate_m_rk(T*, uint64_t);
+
+    /*
+    The number of time we accumulate in Fourier space is limited for accuracy.
+    1. A double can exactly represent successive integers -2^53:2^53
+    2. After the FFT roundtrip, we have an int*int times the int fftwlen, an integer
+    3. If the accumulator reaches beyond this, we create errors no matter what
+    4. Standard double accumulation errors also occurs
+    5. To mitigate those, we cap the number of accumulations to a reasonable value of 4096
+    6. Testing with 2 GiSa yields rk rel. errors for {int8, uint8, int16, uint16} smaller than:
+         {0, 0, 5e-15, 9e-16} for worse case scenario of max amplitude values
+         {0, 0,    ±0, 2e-16} for random uniforms
+       This is better or similar to the error induced when casting the final result to double
+       It is thus considered acceptable
+    7. Kahan summation doesn't seem to help much and slows things down
+    */
+    int compute_accumul_max(){
+        uint64_t buff_max = max(abs(numeric_limits<T>::min()), abs(numeric_limits<T>::max()));
+        int ret = (int)min((((uint64_t)1)<<53)/((uint64_t)fftwlen*buff_max*buff_max),(uint64_t)4096);
+        return ret;
+    }
 
     virtual ~ACorrUpToFFT(){
         // Saving wisdom for future use
@@ -420,8 +444,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
 
         // Each thread accumulates at most counter_max iterations to minimize errors
         int counter = 0;
-        int counter_max = 512;
-        
+
         #pragma omp for reduction(+:m), reduction(+:rk[:k])
         for (uint64_t i=0; i<fftnum; i++){
             T *buff = buffer + i*len;
@@ -440,7 +463,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             // Reverse FFT used to be here instead of outside this loop
     
             // Accumulating rk, correcting for the missing data between fft_chunks
-            for (j=0; j<k; j++){ 
+            for (j=0; j<k; j++){
                 rk_fft_local[j] += obuff[j]; 
                 // Exact correction for edges
                 for(int l = j; l<k; l++){
@@ -449,7 +472,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             }
             // Filling rk_fft_local beyond k
             for (; j<fftwlen; j++){
-                rk_fft_local[j] += obuff[j];
+                rk_fft_local[j] += obuff[j]; 
             }
             counter++;
             if (counter==counter_max){
