@@ -317,7 +317,7 @@ public:
     //          -> 2^33 + 2^18 + epsilon (first order Taylor, positive epsilon tends to 0)
     //       - Casting back to int64 yields 2^33 + 2^18 + 0 = 8590196736 > 8589934591
     //   - The chunk_size is thus the smallest results: 8589934591
-    // e.g. uint16 spanning 0:2^16 in uint64 accumulator
+    // e.g. uint16 spanning 0:2^16-1 in uint64 accumulator
     //   - Similarly: 2^64-1/(2^16-1)^2 = 2^32 + 2^17 - 1 + 4 + epsilon -> 4295098371
     uint64_t compute_chunk_size(){
         uint64_t buff_max = max(abs(numeric_limits<T>::min()), abs(numeric_limits<T>::max()));

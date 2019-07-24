@@ -201,6 +201,7 @@ void declare_fftclass(py::module &m, std::string typestr) {
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
         .def_property_readonly("chunk_size", [](Class& self) {return self.chunk_size;})
         .def_property_readonly("block_processed", [](Class& self) {return self.block_processed;})
+        .def_property_readonly("counter_max", [](Class& self) {return self.counter_max;})
         ;
 }
 
