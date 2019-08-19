@@ -1,6 +1,6 @@
 # Toolchain, using mingw on windows under cywgin
 CXX = $(OS:Windows_NT=x86_64-w64-mingw32-)g++
-CP = $(if $(filter $(OS),Windows_NT),copy,cp)
+CP = cp
 RM = rm
 PY = $(OS:Windows_NT=/c/Anaconda2/)python
 
