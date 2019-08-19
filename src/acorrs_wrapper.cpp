@@ -1,12 +1,14 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <string.h>
-#include "acorrs.h"
+#include "acorrs.hpp"
+#include "acorrsFFT.hpp"
 
 
 namespace py = pybind11;
 
 //TODO: Minimize redundant code by somehow integrating both declaration classes?
+
 
 template<typename T>
 void declare_class(py::module &m, std::string typestr) {
