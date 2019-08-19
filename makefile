@@ -42,7 +42,7 @@ $(TARGET): $(OBJS)
 
 # compile source
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp 
-	$(CXX) $(SHRFLAGS) $(CFLAGS) $(OMPFLAGS) $(FFTWFLAGS) $(LDLIBS) -c $< -o $@
+	$(CXX) $(SHRFLAGS) $(CFLAGS) $(OMPFLAGS) $(LDLIBS) -c $< -o $@
 
 # bring python files along
 $(BIN_DIR)/%.py: $(SRC_DIR)/%.py

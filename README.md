@@ -3,8 +3,10 @@ C++ library with python interface to compute autocorrelations on the fly. Target
 
 
 ## Description
-`acorrs.h` provides class templates to compute the autocorrelation of a signal for the *k* first lags/delays using either direct products or convolutions using FFTs.
-`acorrs._wrapper.cpp` is a pybind11 binding of `acorrs.h`.
+`common.hpp/cpp` contains general includes and functions to set mpreal precision and handle lots of threads on Windows.
+`acorrs.hpp/cpp` provide class templates to compute the autocorrelation of a signal for the *k* first lags/delays using direct products.
+`acorrsFFT.hpp/cpp` is an optimised version of `acorrs.hpp/cpp` using FFT convolutions.
+`acorrs._wrapper.cpp` is a pybind11 binding of `acorrs/acorrsFFT`.
 `acorrs_otf.py` provides the `ACorrUpTo` factory for convenience of use.
 
 
@@ -17,6 +19,7 @@ C++ library with python interface to compute autocorrelations on the fly. Target
 - Uses direct multiplications for small number of autocorrelations and convolutions with FFTW for large numbers.
   - Same results regardless of algorithm (corrects for the inter-fft_buffers correlations up to machine precision)
 - Can be fed blocks of data successively and compute the results afterwards (correlations across blocks are ignored)
+- Refactored for better structure and compilation times.
 
 
 ## Algorithm and optimisation
