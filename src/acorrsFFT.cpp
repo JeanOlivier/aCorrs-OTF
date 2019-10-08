@@ -107,7 +107,7 @@ inline void ACorrUpToFFT<T>::accumulate_m_rk(T *buffer, uint64_t size){
             for (j=0; j<k; j++){
                 rk_fft_local[j] += obuff[j]; 
                 // Exact correction for edges
-                for(int l = j; l<k; l++){
+                for(int l = j; l<k-1; l++){
                     rk[l+1] += (accumul_t)buff[len-j-1]*(accumul_t)buff[len-j+l];
                 }
             }
