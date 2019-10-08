@@ -21,6 +21,11 @@ void declare_class(py::module &m, std::string typestr) {
             self.accumulate((T*)buff.ptr, buff.size);
             }
         )
+        .def("accumulate_m_rk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            auto buff = array.request();
+            self.accumulate_m_rk((T*)buff.ptr, buff.size);
+            }
+        )        
         .def("compute_aCorrs", &Class::compute_aCorrs)
         .def("get_aCorrs", [](Class& self) {
             return py::array_t<double>(
@@ -116,6 +121,11 @@ void declare_fftclass(py::module &m, std::string typestr) {
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
             self.accumulate((T*)buff.ptr, buff.size);
+            }
+        )
+        .def("accumulate_m_rk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            auto buff = array.request();
+            self.accumulate_m_rk((T*)buff.ptr, buff.size);
             }
         )
         .def("compute_aCorrs", &Class::compute_aCorrs)

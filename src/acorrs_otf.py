@@ -26,9 +26,10 @@ if not os.path.isfile(plat_info['lib']):
     raise IOError("{lib} is missing. To compile on {plat}:\n{com}\n".format(**plat_info))
 
 import acorrs_wrapper
+from acorrs_wrapper import set_mpreal_precision
 
 # Applies to instances created afterwards
-acorrs_wrapper.set_mpreal_precision(100)
+set_mpreal_precision(32)
 
 # Returns the proper class. Fancy name: factory. Ghetto name: wrapper wrapper.
 def ACorrUpTo(k, data, fft=None, fftchunk=8192, k_fft=44):
