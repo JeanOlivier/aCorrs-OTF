@@ -17,11 +17,13 @@ void declare_class(py::module &m, std::string typestr) {
     py::class_<Class>(m, pyclass_name.c_str(), py::buffer_protocol(), py::dynamic_attr())
         .def(py::init<int>())
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            py::gil_scoped_release release;
             auto buff = array.request();
             self.accumulate((T*)buff.ptr, buff.size);
             }
         )
         .def("accumulate_m_rk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            py::gil_scoped_release release;
             auto buff = array.request();
             self.accumulate_m_rk((T*)buff.ptr, buff.size);
             }
@@ -36,6 +38,7 @@ void declare_class(py::module &m, std::string typestr) {
             }
         )
         .def("__call__", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            py::gil_scoped_release release;
             auto buff = array.request();
             self.accumulate((T*)buff.ptr, buff.size);
             self.compute_aCorrs();
@@ -119,11 +122,13 @@ void declare_fftclass(py::module &m, std::string typestr) {
     py::class_<Class>(m, pyclass_name.c_str(), py::buffer_protocol(), py::dynamic_attr())
         .def(py::init<int,int>())
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            py::gil_scoped_release release;
             auto buff = array.request();
             self.accumulate((T*)buff.ptr, buff.size);
             }
         )
         .def("accumulate_m_rk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            py::gil_scoped_release release;
             auto buff = array.request();
             self.accumulate_m_rk((T*)buff.ptr, buff.size);
             }
@@ -138,6 +143,7 @@ void declare_fftclass(py::module &m, std::string typestr) {
             }
         )
         .def("__call__", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            py::gil_scoped_release release;
             auto buff = array.request();
             self.accumulate((T*)buff.ptr, buff.size);
             self.compute_aCorrs();
