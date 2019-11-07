@@ -48,7 +48,7 @@ public:
     void accumulate(T *buffer, uint64_t size);
     inline void accumulate_chunk(T *buffer, uint64_t size);
     inline void accumulate_chunk_edge(T *buffer, uint64_t size);
-    virtual inline void accumulate_m_rk(T *buffer, uint64_t size);
+    virtual void accumulate_m_rk(T *buffer, uint64_t size);
     inline void accumulate_m_rk_edge(T *buffer, uint64_t size);
     // gk is the beginning corrections 
     // It should be computed ONCE on the very first chunk of data

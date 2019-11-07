@@ -27,7 +27,7 @@ public:
 // Constructors //
     ACorrUpToFFT(int k, int len);
 
-    inline void accumulate_m_rk(T*, uint64_t);
+    void accumulate_m_rk(T*, uint64_t);
     int compute_accumul_max();
     int test;
 
