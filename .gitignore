@@ -12,3 +12,5 @@
 *.dat
 *.npz
 *.pyd
+*.bak
+
