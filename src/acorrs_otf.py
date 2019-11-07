@@ -148,7 +148,7 @@ def load_scaling(fn):
     return load(fn)['arr_0']
 
 # E.g.
-# >>> a=save_scaling('S',1024,int16,16*2**30,n=20)
+# >>> a=save_scaling(1024,int16,16*2**30,n=20)
 # >>> plot_scaling(*a, save=True)
 # >>> plot_errors(*a, save=True)
 def plot_scaling(res, dtype, size, save=False, comment=''):
