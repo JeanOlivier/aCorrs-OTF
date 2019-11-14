@@ -88,9 +88,7 @@ void ACorrUpToPhi<T>::accumulate_Nfk(uint64_t size){
     }
 }
 
-
-// TODO:    1. Do min(nfk) as chunks for all f and k with j-loop as the outer one; CHUNK
-// TODO:    2. Do the remainder from min(nfk) to nfk with j-loop as the inner one; EDGE
+// TODO: There's something fishy with j<size, look into it
 template<class T>
 inline void ACorrUpToPhi<T>::accumulate_mf_rfk(T *buffer, uint64_t size){
     #pragma omp parallel
@@ -202,48 +200,50 @@ inline void ACorrUpToPhi<T>::reset_accumulators(){
     }
 }
 
-//template<class T>
-//inline mpreal* ACorrUpToPhi<T>::get_aCorrs_mpfr(){
-//    // No corr across blocks: i -> i*block_processed
-//    mpreal n_k;
-//    for (int i=0; i<k; i++){
-//        n_k = n_mpfr - (mpreal)(i*block_processed);
-//        aCorrs_mpfr[i] = (rfk_mpfr[i] - (m_mpfr-bfk_mpfr[i])*(m_mpfr-gfk_mpfr[i])/n_k)/n_k;
-//    }
-//    return aCorrs_mpfr; // Return pointer to array
-//}
-//
-//template<class T>
-//inline void ACorrUpToPhi<T>::compute_aCorrs(){
-//    get_aCorrs_mpfr();
-//    for (int i=0; i<k; i++){
-//        aCorrs[i] = (double)aCorrs_mpfr[i]; // Small loss of precision here
-//    }
-//}
-//
-//template<class T>
-//inline double* ACorrUpToPhi<T>::get_aCorrs(){
-//    compute_aCorrs();
-//    return aCorrs; // Return pointer to array
-//}
-//
-//template<class T>
-//inline void ACorrUpToPhi<T>::get_aCorrs(double* res, int size){
-//    compute_aCorrs();
-//    for (int i=0; i<size; i++){
-//        res[i] = aCorrs[i];
-//    }
-//}
-//
-//template<class T>
-//inline void ACorrUpToPhi<T>::get_rk(double* res, int size){
-//        if (size>k){
-//            size = k;
-//        }
-//        for (int i=0; i<size; i++){
-//            res[i] = (double)rfk[i];
-//        }
-//    }
+template<class T>
+inline mpreal* ACorrUpToPhi<T>::get_aCorrs_mpfr(){
+    // No corr across blocks: i -> i*block_processed
+    for (int i=0; i<k; i++){
+        for (int f=0; f<lambda; f++){
+            aCorrs_mpfr[f*k+i] = (rfk_mpfr[f*k+i] - (mf_mpfr[f]-bfk_mpfr[f*k+i])*(mf_mpfr[f]-gfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i];
+        }
+    }
+    return aCorrs_mpfr; // Return pointer to array
+}
+
+template<class T>
+inline void ACorrUpToPhi<T>::compute_aCorrs(){
+    get_aCorrs_mpfr();
+    for (int l=0; l<k*lambda; l++){ // Single loop because there are no f-specific value
+        aCorrs[l] = (double)aCorrs_mpfr[l]; // Small loss of precision here
+    }
+}
+
+template<class T>
+inline double* ACorrUpToPhi<T>::get_aCorrs(){
+    compute_aCorrs();
+    return aCorrs; // Return pointer to array
+}
+
+template<class T>
+inline void ACorrUpToPhi<T>::get_aCorrs(double* res, int size){
+    compute_aCorrs();
+    // Size has to equal lambda*k
+    for (int i=0; i<size; i++){
+        res[i] = aCorrs[i];
+    }
+}
+
+template<class T>
+inline void ACorrUpToPhi<T>::get_rfk(double* res, int size){
+        if (size>k){
+            size = k;
+        }
+        // Size has to equal lambda*k
+        for (int i=0; i<size; i++){
+            res[i] = (double)rfk[i];
+        }
+    }
 
    
 // Max chunk_size to avoid overflow: chunk_size*buff_max² == accumul_max

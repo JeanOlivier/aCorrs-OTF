@@ -69,10 +69,10 @@ public:
     inline void update_mpfr();
     inline void reset_accumulators();
 
-    mpreal* get_aCorrs_Phi_mpfr();
-    void compute_aCorrs_Phi();
-    double* get_aCorrs_Phi();
-    void get_aCorrs_Phi(double* res, int size);
+    mpreal* get_aCorrs_mpfr();
+    void compute_aCorrs();
+    double* get_aCorrs();
+    void get_aCorrs(double* res, int size);
     void get_rfk(double* res, int size);
    
     uint64_t compute_chunk_size();
