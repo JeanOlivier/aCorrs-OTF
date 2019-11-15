@@ -32,11 +32,14 @@ from acorrs_wrapper import set_mpreal_precision
 set_mpreal_precision(32)
 
 # Returns the proper class. Fancy name: factory. Ghetto name: wrapper wrapper.
-def ACorrUpTo(k, data, fft=None, fftchunk=8192, k_fft=44):
+def ACorrUpTo(k, data, phi=False, fft=None, fftchunk=8192, k_fft=44):
     if type(data) is ndarray:
         dtype = data.dtype.name
     else:
         dtype = data
+    
+    if phi:
+        fft = False
 
     if fft is None: 
         if k>=k_fft:  # k_fft is empirical for each system 
@@ -47,10 +50,12 @@ def ACorrUpTo(k, data, fft=None, fftchunk=8192, k_fft=44):
     if fft and k>fftchunk:
         fftchunk = int(2**ceil(log2(k))) # Ceil to power of two
     
-    classname = "ACorrUpTo{fft}_{dtype}".format(dtype=dtype, fft="FFT" if fft else "")
+    classname = "ACorrUpTo{fft}_{dtype}".format(dtype=dtype, fft="FFT" if fft else "Phi" if phi else "")
     
     if fft:
         retClass = getattr(acorrs_wrapper, classname)(k, fftchunk)
+    elif phi:
+        retClass = getattr(acorrs_wrapper, classname)(k, phi)
     else:
         retClass = getattr(acorrs_wrapper, classname)(k)
     

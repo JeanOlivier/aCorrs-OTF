@@ -224,6 +224,20 @@ void declare_phiclass(py::module &m, std::string typestr) {
     std::string pyclass_name = std::string("ACorrUpToPhi_") + typestr;
     py::class_<Class>(m, pyclass_name.c_str(), py::buffer_protocol(), py::dynamic_attr())
         .def(py::init<int,int>())
+        .def("get_nfk", [](Class& self, uint64_t a, int b, int c, int d){
+            return self.get_nfk(a,b,c,d);
+            }
+        )
+        .def("compute_current_nfk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
+            auto buff = array.request();
+            self.compute_current_nfk(buff.size);
+            return py::array_t<uint64_t>(
+                {self.lambda*self.k,},  // shape
+                {sizeof(uint64_t),},      // C-style contiguous strides for double
+                self.nfk,            // the data pointer
+                NULL);                  // numpy array references this parent
+            }
+        )
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
             self.accumulate((T*)buff.ptr, buff.size);

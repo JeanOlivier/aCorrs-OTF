@@ -31,6 +31,9 @@ inline void ACorrUpToPhi<T>::accumulate(T *buffer, uint64_t size){
     accumulate_Nfk(size);
     accumulate_gfk(buffer, size); // Compute bfk on very first data
 
+    //accumulate_mf_rfk(buffer, nfk[lambda*k-1]);
+    //update();
+
     // 1. Do min(nfk) in blocks for all f and k with j-loop as the outer one; CHUNK
     // nfk[lambda*k-1] is min(nfk); nfk[f*k+j] >= nfk[lambda*k-1]
     // Loop on whole chunks
@@ -73,34 +76,31 @@ template<class T>
 void ACorrUpToPhi<T>::compute_current_nfk(uint64_t size){
     for (int f=0; f<lambda; f++){
         for (int i=0; i<k; i++){
-        nfk[f*k+i] = get_nfk(size, lambda, f, i);
+            nfk[f*k+i] = get_nfk(size, lambda, f, i);
         }
     }
 }
 
 template<class T>
 void ACorrUpToPhi<T>::accumulate_Nfk(uint64_t size){
-    compute_current_nfk(size);          // Set nfk to that of current block if not already done
-    for (int f=0; f<lambda; f++){
-        for (int i=0; i<k; i++){
-            Nfk[f*k+i] += nfk[f*k+i];   // accumulating
-        }
+    compute_current_nfk(size);  // Set nfk to that of current block if not already done
+    for (int i=0; i<k*lambda; i++){
+        Nfk_mpfr[i] += (mpreal)nfk[i];   // accumulating
     }
 }
 
-// TODO: There's something fishy with j<size, look into it
 template<class T>
 inline void ACorrUpToPhi<T>::accumulate_mf_rfk(T *buffer, uint64_t size){
     #pragma omp parallel
     {
         manage_thread_affinity();
         #pragma omp for simd collapse(2) reduction(+:mf[:lambda]), reduction(+:rfk[:k*lambda])
-        for (uint64_t j=0; j<size; j++){
+        for (uint64_t j=0; j<size*lambda; j+=lambda){
             for (int f=0; f<lambda; f++){
-                mf[f] += (accumul_t)buffer[f+j*lambda];
+                mf[f] += (accumul_t)buffer[f+j];
                 #pragma omp ordered simd
                 for (int i=0; i<k; i++){
-                    rfk[f*k+i] += (accumul_t)buffer[f+j*lambda]*(accumul_t)buffer[f+j*lambda+i];
+                    rfk[f*k+i] += (accumul_t)buffer[f+j]*(accumul_t)buffer[f+j+i];
                 }
             }
         }
@@ -177,7 +177,6 @@ inline void ACorrUpToPhi<T>::update_mpfr(){
     for (int f=0; f<lambda; f++){
         mf_mpfr[f] += mf[f];
         for (int i=0; i<k; i++){
-            Nfk_mpfr[f*k+i] += Nfk[f*k+i];
             rfk_mpfr[f*k+i] += rfk[f*k+i];
             // bfk/gfk accumulated in their own respective function
             //bfk_mpfr[f*k+i] += bfk[f*k+i];
@@ -191,7 +190,6 @@ inline void ACorrUpToPhi<T>::reset_accumulators(){
     for (int f=0; f<lambda; f++){
         mf[f] = 0;
         for (int i=0; i<k; i++){
-            Nfk[f*k+i] = 0;
             rfk[f*k+i] = 0;
             // bfk/gfk are reset in their own respective function
             //bfk[f*k+i] = 0;

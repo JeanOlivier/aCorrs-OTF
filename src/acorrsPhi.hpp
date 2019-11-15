@@ -22,7 +22,6 @@ public:
 
     // f,k specific accumulators
     accumul_t *mf;  // One m per phase
-    accumul_t *Nfk; // Total nfk over all blocks
     accumul_t *rfk; // Conceptually: rfk[i][j] == rfk[i*k+j]
     accumul_t *bfk; // Similarly
     accumul_t *gfk; // Similarly
@@ -56,7 +55,7 @@ public:
     void accumulate(T *buffer, uint64_t size);
     inline void accumulate_chunk(T *buffer, uint64_t size);
     inline void accumulate_chunk_edge(T *buffer, uint64_t size);
-    virtual void accumulate_mf_rfk(T *buffer, uint64_t size);
+    virtual void accumulate_mf_rfk(T *buffer, uint64_t nphi);
     inline void accumulate_mf_rfk_edge(T *buffer, uint64_t size);
     // gfk is the beginning corrections 
     // It should be computed ONCE on the very first chunk of data
