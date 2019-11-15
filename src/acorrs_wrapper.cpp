@@ -231,11 +231,13 @@ void declare_phiclass(py::module &m, std::string typestr) {
         .def("compute_current_nfk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
             self.compute_current_nfk(buff.size);
-            return py::array_t<uint64_t>(
+            auto res = py::array_t<uint64_t>(
                 {self.lambda*self.k,},  // shape
                 {sizeof(uint64_t),},      // C-style contiguous strides for double
                 self.nfk,            // the data pointer
                 NULL);                  // numpy array references this parent
+            res.resize({self.lambda, self.k});
+            return res;
             }
         )
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
@@ -250,11 +252,13 @@ void declare_phiclass(py::module &m, std::string typestr) {
         )
         .def("compute_aCorrs", &Class::compute_aCorrs)
         .def("get_aCorrs", [](Class& self) {
-            return py::array_t<double>(
+            auto res = py::array_t<double>(
                 {self.lambda*self.k,},  // shape
                 {sizeof(double),},      // C-style contiguous strides for double
                 self.aCorrs,            // the data pointer
                 NULL);                  // numpy array references this parent
+            res.resize({self.lambda, self.k});
+            return res;
             }
         )
         .def("__call__", [](Class& self, py::array_t<T, py::array::c_style>& array) {
@@ -272,11 +276,13 @@ void declare_phiclass(py::module &m, std::string typestr) {
             else {
                 tmp = self.aCorrs;
             }
-            return py::array_t<double>(
-                {self.lambda*self.k,}, // shape
+            auto res = py::array_t<double>(
+                {self.lambda*self.k,},  // shape
                 {sizeof(double),},      // C-style contiguous strides for double
                 tmp,                    // the data pointer
                 NULL);                  // numpy array references this parent
+            res.resize({self.lambda, self.k});
+            return res;
             }
         )
         .def_property_readonly("rk", [](Class& self){
@@ -287,11 +293,13 @@ void declare_phiclass(py::module &m, std::string typestr) {
                 delete[] ret;
                 });
             for (int i=0; i<self.lambda*self.k; i++){ret[i] = (accumul_t)self.rfk_mpfr[i];}
-            return py::array_t<accumul_t>(
+            auto res = py::array_t<accumul_t>(
                 {self.lambda*self.k,}, // shape
                 {sizeof(accumul_t),},   // C-style contiguous strides for double
                 ret,                    // the data pointer
                 free_when_done);        // numpy array references this parent
+            res.resize({self.lambda, self.k});
+            return res;
             }
         )
         //.def_property_readonly("bk", [](Class& self){
@@ -325,7 +333,7 @@ void declare_phiclass(py::module &m, std::string typestr) {
         //    }
         //)
         .def_property_readonly("k", [](Class& self) {return self.k;})
-        // Using the type of n instead of m because of &m voodoo. Always the same. 
+        .def_property_readonly("n", [](Class& self) {return self.n;}) 
         .def_property_readonly("l", [](Class& self) {return self.lambda;})
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
         .def_property_readonly("chunk_size", [](Class& self) {return self.chunk_size;})

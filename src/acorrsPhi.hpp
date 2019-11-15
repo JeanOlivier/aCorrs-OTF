@@ -15,7 +15,7 @@ public:
     typedef typename conditional<((T)-1>0), uint64_t, int64_t>::type accumul_t;
     
     // Math stuff 
-    //accumul_t n;  // Actual length of data
+    accumul_t n;  // Actual length of data
     uint64_t *nfk;  // nfk for current block
     int k;
     int lambda;     // Period, phases will span [0, lambda-1]
