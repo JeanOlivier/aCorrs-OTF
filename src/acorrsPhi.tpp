@@ -3,7 +3,7 @@
 using namespace std;
 
 template<class T>
-inline ACorrUpToPhi<T>::ACorrUpToPhi(int k, int lambda): k(k), lambda(lambda), k_mpfr(k), l_mpfr(lambda), chunk_processed(0), block_processed(0),  n(0)
+inline ACorrUpToPhi<T>::ACorrUpToPhi(int k, int lambda): n(0), k(k), lambda(lambda), k_mpfr(k), l_mpfr(lambda), chunk_processed(0), block_processed(0)
 {
     mf = new accumul_t [lambda]();      // Parentheses initialize to zero
     nfk = new uint64_t [lambda*k]();    // There are lambda phases and k lags -> lambda*k values
