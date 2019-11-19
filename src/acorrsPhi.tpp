@@ -70,7 +70,8 @@ inline void ACorrUpToPhi<T>::accumulate_chunk_edge(T *buffer, uint64_t size){
 template<class T>
 uint64_t ACorrUpToPhi<T>::get_nfk(uint64_t N, int lambda, int f, int k){
     // Whole block + Potential Partial Block - Avoid k out of buffer
-    return N/lambda + ((N%lambda) > 0) - ((N%lambda+k+f)/lambda);
+    // TODO: Test this!
+    return N/lambda + ((N%lambda) > 0) - ((-N%lambda+k+f)/lambda);
 }
 
 template<class T>
@@ -142,6 +143,7 @@ inline void ACorrUpToPhi<T>::accumulate_gfk(T *buffer, uint64_t size){
     for (int f=0; f<lambda; f++){
         uint64_t alphaf = size/lambda + (f<(int)(size%lambda));
         for (int i=0; i<k; i++){
+            cerr << "Test! " << f << " | " << i << " | " << alphaf << " | " << nfk[f*k+i] << endl;//j << endl; 
             for (uint64_t j=0; j<alphaf-nfk[f*k+i]; j++){
                 gfk[f*k+i] += (accumul_t)buffer[f+j*lambda];
             }
