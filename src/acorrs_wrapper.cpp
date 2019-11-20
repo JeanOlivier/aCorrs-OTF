@@ -285,6 +285,15 @@ void declare_phiclass(py::module &m, std::string typestr) {
             return res;
             }
         )
+        .def_property_readonly("res0", [](Class& self){
+            self.get_aCorrs0();
+            return py::array_t<double>(
+                {self.k,},  // shape
+                {sizeof(double),},      // C-style contiguous strides for double
+                self.ak,                    // the data pointer
+                NULL);                  // numpy array references this parent
+            }
+        )
         .def_property_readonly("rk", [](Class& self){
             typedef typename std::remove_pointer<decltype(self.rfk)>::type accumul_t;
             accumul_t *ret = new accumul_t [self.lambda*self.k]();

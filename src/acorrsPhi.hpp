@@ -25,6 +25,8 @@ public:
     accumul_t *rfk; // Conceptually: rfk[i][j] == rfk[i*k+j]
     accumul_t *bfk; // Similarly
     accumul_t *gfk; // Similarly
+    accumul_t *bk; // Similarly
+    accumul_t *gk; // Similarly
     
     // Precision stuff
     mpreal k_mpfr;
@@ -35,10 +37,13 @@ public:
     mpreal *rfk_mpfr;
     mpreal *bfk_mpfr;
     mpreal *gfk_mpfr;
+    mpreal *bk_mpfr;
+    mpreal *gk_mpfr;
 
     // Autocorrelations results
     mpreal *aCorrs_mpfr;
     double *aCorrs;
+    double *ak;
 
     // Managerial stuff
     uint64_t chunk_processed;
@@ -63,12 +68,19 @@ public:
     // bfk is the end corrections
     // Re-compute for each new chunk to keep autocorr valid 
     inline void accumulate_bfk(T *buffer, uint64_t size);
+    // gk is the beginning corrections without a phase reference
+    // It should be computed ONCE on the very first chunk of data
+    inline void accumulate_gk(T *buffer, uint64_t size);
+    // bk is the end corrections without a phase reference
+    // Re-compute for each new chunk to keep autocorr valid 
+    inline void accumulate_bk(T *buffer, uint64_t size);
 
     inline void update();
     inline void update_mpfr();
     inline void reset_accumulators();
 
     mpreal* get_aCorrs_mpfr();
+    void get_aCorrs0();
     void compute_aCorrs();
     double* get_aCorrs();
     void get_aCorrs(double* res, int size);

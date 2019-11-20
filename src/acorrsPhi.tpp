@@ -10,15 +10,22 @@ inline ACorrUpToPhi<T>::ACorrUpToPhi(int k, int lambda): n(0), k(k), lambda(lamb
     rfk = new accumul_t [lambda*k](); 
     gfk = new accumul_t [lambda*k]();
     bfk = new accumul_t [lambda*k]();
+    gk = new accumul_t [lambda*k]();
+    bk = new accumul_t [lambda*k]();
 
     mf_mpfr = new mpreal [lambda]();
     Nfk_mpfr = new mpreal [lambda*k]();   
     rfk_mpfr = new mpreal [lambda*k]();   
     gfk_mpfr = new mpreal [lambda*k]();
     bfk_mpfr = new mpreal [lambda*k]();   
+    gk_mpfr = new mpreal [lambda*k]();
+    bk_mpfr = new mpreal [lambda*k]();   
 
     aCorrs = new double [lambda*k]();
     aCorrs_mpfr = new mpreal [lambda*k]();   
+    
+    // Phaseless correlations, for testing/camparison
+    ak = new double [k]();
     
     chunk_size = compute_chunk_size(); // Auto largest possible
 }
@@ -31,9 +38,6 @@ inline void ACorrUpToPhi<T>::accumulate(T *buffer, uint64_t size){
     n += size;
     accumulate_Nfk(size);
     accumulate_gfk(buffer, size); // Compute bfk on very first data
-
-    //accumulate_mf_rfk(buffer, nfk[lambda*k-1]);
-    //update();
 
     // 1. Do min(nfk) in blocks for all f and k with j-loop as the outer one; CHUNK
     // nfk[lambda*k-1] is min(nfk); nfk[f*k+j] >= nfk[lambda*k-1]
@@ -150,6 +154,8 @@ inline void ACorrUpToPhi<T>::accumulate_gfk(T *buffer, uint64_t size){
             gfk[f*k+i] = 0; // Reseting accumulator
         }
     }
+    // Hijacking gfk to compute gk too
+    accumulate_gk(buffer,size);
 }
 
 // bfk is the end corrections
@@ -166,8 +172,36 @@ inline void ACorrUpToPhi<T>::accumulate_bfk(T *buffer, uint64_t size){
             bfk[f*k+i] = 0; // Reseting accumulator
         }
     }
+    // Hijacking bfk to compute bk too
+    accumulate_bk(buffer,size);
 }
-    
+
+// gk is the beginning corrections without a phase reference
+// It should be computed ONCE on the very first chunk of data
+template<class T>
+inline void ACorrUpToPhi<T>::accumulate_gk(T *buffer, uint64_t size){
+    for (int i=0; i<k; i++){
+        for (int j=0; j<i; j++){
+            gk[i] += (accumul_t)buffer[j];
+        }
+        gk_mpfr[i] += gk[i]; // Updating precision value
+        gk[i] = 0; // Reseting accumulator
+    }
+}
+
+// bk is the end corrections without a phase reference
+// Re-compute for each new chunk to keep autocorr valid 
+template<class T>
+inline void ACorrUpToPhi<T>::accumulate_bk(T *buffer, uint64_t size){
+    for (int i=0; i<k; i++){
+        for (uint64_t j=size-i; j<size; j++){
+            bk[i] += (accumul_t)buffer[j];
+        }
+        bk_mpfr[i] += bk[i]; // Updating precision value
+        bk[i] = 0; // Reseting accumulator
+    }
+}
+
 template<class T>
 inline void ACorrUpToPhi<T>::update(){
     update_mpfr();
@@ -209,6 +243,45 @@ inline mpreal* ACorrUpToPhi<T>::get_aCorrs_mpfr(){
         }
     }
     return aCorrs_mpfr; // Return pointer to array
+}
+
+// Seem to be precision within 1e-8
+template<class T>
+inline void ACorrUpToPhi<T>::get_aCorrs0(){
+    // Result that will be cast to double into ak
+    mpreal* ak_mpfr = new mpreal [k]();
+    
+    // Accumulators that we sum over phases
+    mpreal* rk = new mpreal [k]();
+    for (int f=0; f<lambda; f++){
+        for (int i=0; i<k; i++){
+            rk[i] += rfk_mpfr[f*k+i];
+        }
+    }
+    mpreal* nk = new mpreal [k]();
+    for (int i=0; i<k; i++){
+        nk[i] = (mpreal)n - (mpreal)(i*block_processed);
+    }
+
+    // M summed over phases
+    mpreal m = 0;
+    for (int f=0; f<lambda; f++){
+        m += mf_mpfr[f];
+    }
+
+    // COMPUTE!
+    for (int i=0; i<k; i++){
+        ak_mpfr[i] = (rk[i] - (m-bk_mpfr[i])*(m-gk_mpfr[i])/nk[i])/nk[i];
+    }
+
+    // TO DOULBES!
+    for (int i=0; i<k; i++){
+        ak[i] = (double)ak_mpfr[i];
+    }
+
+    delete[] ak_mpfr;
+    delete[] rk; 
+    delete[] nk; 
 }
 
 template<class T>
@@ -278,13 +351,19 @@ inline ACorrUpToPhi<T>::~ACorrUpToPhi(){
     delete[] rfk;
     delete[] gfk;
     delete[] bfk;
+    delete[] gk;
+    delete[] bk;
     delete[] mf_mpfr;
     delete[] Nfk_mpfr;
     delete[] rfk_mpfr;
     delete[] gfk_mpfr;
     delete[] bfk_mpfr;
+    delete[] gk_mpfr;
+    delete[] bk_mpfr;
 
     delete[] aCorrs;
     delete[] aCorrs_mpfr;
+
+    delete[] ak;
 }
 
