@@ -245,7 +245,7 @@ inline mpreal* ACorrUpToPhi<T>::get_aCorrs_mpfr(){
     return aCorrs_mpfr; // Return pointer to array
 }
 
-// Seem to be precision within 1e-8
+// Should be exact!
 template<class T>
 inline void ACorrUpToPhi<T>::get_aCorrs0(){
     // Result that will be cast to double into ak
