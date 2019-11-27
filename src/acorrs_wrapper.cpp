@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/embed.h>
 #include <string.h>
 #include "acorrs.hpp"
 #include "acorrsFFT.hpp"
@@ -19,11 +20,13 @@ void declare_class(py::module &m, std::string typestr) {
         .def(py::init<int>())
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate((T*)buff.ptr, buff.size);
             }
         )
         .def("accumulate_m_rk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate_m_rk((T*)buff.ptr, buff.size);
             }
         )        
@@ -38,6 +41,7 @@ void declare_class(py::module &m, std::string typestr) {
         )
         .def("__call__", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate((T*)buff.ptr, buff.size);
             self.compute_aCorrs();
             }
@@ -121,11 +125,13 @@ void declare_fftclass(py::module &m, std::string typestr) {
         .def(py::init<int,int>())
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate((T*)buff.ptr, buff.size);
             }
         )
         .def("accumulate_m_rk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate_m_rk((T*)buff.ptr, buff.size);
             }
         )
@@ -140,6 +146,7 @@ void declare_fftclass(py::module &m, std::string typestr) {
         )
         .def("__call__", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate((T*)buff.ptr, buff.size);
             self.compute_aCorrs();
             }
@@ -242,11 +249,13 @@ void declare_phiclass(py::module &m, std::string typestr) {
         )
         .def("accumulate", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate((T*)buff.ptr, buff.size);
             }
         )
         .def("accumulate_mf_rfk", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate_mf_rfk((T*)buff.ptr, buff.size);
             }
         )
@@ -263,6 +272,7 @@ void declare_phiclass(py::module &m, std::string typestr) {
         )
         .def("__call__", [](Class& self, py::array_t<T, py::array::c_style>& array) {
             auto buff = array.request();
+            pybind11::gil_scoped_release release;   
             self.accumulate((T*)buff.ptr, buff.size);
             self.compute_aCorrs();
             }
