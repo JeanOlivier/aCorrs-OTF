@@ -75,7 +75,8 @@ template<class T>
 uint64_t ACorrUpToPhi<T>::get_nfk(uint64_t N, int lambda, int f, int k){
     // Whole block + Potential Partial Block - Avoid k out of buffer
     // TODO: Test this!
-    return N/lambda + ((N%lambda) > 0) - ((-N%lambda+k+f)/lambda);
+    // Funky trick to get Python style modulo
+    return N/lambda + ((N%lambda) > 0) - ((-((int)(N%lambda))+lambda)%lambda+k+f)/lambda;
 }
 
 template<class T>
@@ -239,7 +240,7 @@ inline mpreal* ACorrUpToPhi<T>::get_aCorrs_mpfr(){
     // No corr across blocks: i -> i*block_processed
     for (int i=0; i<k; i++){
         for (int f=0; f<lambda; f++){
-            aCorrs_mpfr[f*k+i] = (rfk_mpfr[f*k+i] - (mf_mpfr[f]-bfk_mpfr[f*k+i])*(mf_mpfr[f]-gfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i];
+            aCorrs_mpfr[f*k+i] = (rfk_mpfr[f*k+i] - (mf_mpfr[f] - bfk_mpfr[f*k+i]) * (mf_mpfr[f] - gfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i];
         }
     }
     return aCorrs_mpfr; // Return pointer to array
