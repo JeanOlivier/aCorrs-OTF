@@ -37,7 +37,7 @@ inline void ACorrUpToPhi<T>::accumulate(T *buffer, uint64_t size){
     block_processed++;
     n += size;
     accumulate_Nfk(size);
-    accumulate_gfk(buffer, size); // Compute bfk on very first data
+    accumulate_gfk(buffer, size); // Compute gfk on very first data
 
     // 1. Do min(nfk) in blocks for all f and k with j-loop as the outer one; CHUNK
     // nfk[lambda*k-1] is min(nfk); nfk[f*k+j] >= nfk[lambda*k-1]
@@ -74,9 +74,8 @@ inline void ACorrUpToPhi<T>::accumulate_chunk_edge(T *buffer, uint64_t size){
 template<class T>
 uint64_t ACorrUpToPhi<T>::get_nfk(uint64_t N, int lambda, int f, int k){
     // Whole block + Potential Partial Block - Avoid k out of buffer
-    // TODO: Test this!
-    // Funky trick to get Python style modulo
-    return N/lambda + ((N%lambda) > 0) - ((-((int)(N%lambda))+lambda)%lambda+k+f)/lambda;
+    //return N/lambda + ((N%lambda) > 0) - ((-((int)(N%lambda))+lambda)%lambda+k+f)/lambda;
+    return N/lambda + ((uint64_t)((f+k)%lambda)<(N%lambda)) - (f+k)/lambda; // Same as above line, but cleaner.
 }
 
 template<class T>
@@ -142,25 +141,27 @@ inline void ACorrUpToPhi<T>::accumulate_mf_rfk_edge(T *buffer, uint64_t size){
 }
 
 // gfk is the beginning corrections 
-// It should be computed ONCE on the very first chunk of data
+// It should be computed ONCE per block on the very first chunk of data
 template<class T>
 inline void ACorrUpToPhi<T>::accumulate_gfk(T *buffer, uint64_t size){
     for (int f=0; f<lambda; f++){
-        uint64_t alphaf = size/lambda + (f<(int)(size%lambda));
+        //uint64_t alphaf = size/lambda + (f<(int)(size%lambda));
         for (int i=0; i<k; i++){
-            for (uint64_t j=0; j<alphaf-nfk[f*k+i]; j++){
-                gfk[f*k+i] += (accumul_t)buffer[f+j*lambda];
+            //uint64_t alphaf = size/lambda + (((f+i)%lambda)<(int)(size%lambda));
+            //for (uint64_t j=0; j<alphaf-nfk[f*k+i]; j++){
+            for (uint64_t j=0; j<(uint64_t)(i+f)/lambda; j++){
+                gfk[f*k+i] += (accumul_t)buffer[j*lambda+((i+f)%lambda)];
             }
             gfk_mpfr[f*k+i] += gfk[f*k+i]; // Updating precision value
             gfk[f*k+i] = 0; // Reseting accumulator
         }
     }
     // Hijacking gfk to compute gk too
-    accumulate_gk(buffer,size);
+    accumulate_gk(buffer,size); // Not required but fast and helps testing
 }
 
 // bfk is the end corrections
-// Re-compute for each new chunk to keep autocorr valid 
+// It should be computed ONCE per block on the very last chunk of data
 template<class T>
 inline void ACorrUpToPhi<T>::accumulate_bfk(T *buffer, uint64_t size){
     for (int f=0; f<lambda; f++){
@@ -174,11 +175,11 @@ inline void ACorrUpToPhi<T>::accumulate_bfk(T *buffer, uint64_t size){
         }
     }
     // Hijacking bfk to compute bk too
-    accumulate_bk(buffer,size);
+    accumulate_bk(buffer,size); // Not required but fast and helps testing
 }
 
 // gk is the beginning corrections without a phase reference
-// It should be computed ONCE on the very first chunk of data
+// It should be computed ONCE per block on the very first chunk of data
 template<class T>
 inline void ACorrUpToPhi<T>::accumulate_gk(T *buffer, uint64_t size){
     for (int i=0; i<k; i++){
@@ -191,7 +192,7 @@ inline void ACorrUpToPhi<T>::accumulate_gk(T *buffer, uint64_t size){
 }
 
 // bk is the end corrections without a phase reference
-// Re-compute for each new chunk to keep autocorr valid 
+// It should be computed ONCE per block on the very last chunk of data
 template<class T>
 inline void ACorrUpToPhi<T>::accumulate_bk(T *buffer, uint64_t size){
     for (int i=0; i<k; i++){
@@ -216,8 +217,6 @@ inline void ACorrUpToPhi<T>::update_mpfr(){
         for (int i=0; i<k; i++){
             rfk_mpfr[f*k+i] += rfk[f*k+i];
             // bfk/gfk accumulated in their own respective function
-            //bfk_mpfr[f*k+i] += bfk[f*k+i];
-            //gfk_mpfr[f*k+i] += gfk[f*k+i];
         }
     }
 }
@@ -229,8 +228,6 @@ inline void ACorrUpToPhi<T>::reset_accumulators(){
         for (int i=0; i<k; i++){
             rfk[f*k+i] = 0;
             // bfk/gfk are reset in their own respective function
-            //bfk[f*k+i] = 0;
-            //gfk[f*k+i] = 0;
         }
     }
 }
@@ -240,7 +237,9 @@ inline mpreal* ACorrUpToPhi<T>::get_aCorrs_mpfr(){
     // No corr across blocks: i -> i*block_processed
     for (int i=0; i<k; i++){
         for (int f=0; f<lambda; f++){
-            aCorrs_mpfr[f*k+i] = (rfk_mpfr[f*k+i] - (mf_mpfr[f] - bfk_mpfr[f*k+i]) * (mf_mpfr[f] - gfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i];
+            //aCorrs_mpfr[f*k+i] = (rfk_mpfr[f*k+i] - (mf_mpfr[f] - bfk_mpfr[f*k+i]) * (mf_mpfr[f] - gfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i];
+            // Corrected expression follows
+            aCorrs_mpfr[f*k+i] = (rfk_mpfr[f*k+i] - (mf_mpfr[f] - bfk_mpfr[f*k+i]) * (mf_mpfr[(f+i)%lambda] - gfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i])/Nfk_mpfr[f*k+i];
         }
     }
     return aCorrs_mpfr; // Return pointer to array
@@ -263,6 +262,8 @@ inline void ACorrUpToPhi<T>::get_aCorrs0(){
     for (int i=0; i<k; i++){
         nk[i] = (mpreal)n - (mpreal)(i*block_processed);
     }
+    
+    // We could ensure \sum_\phi gfk = gk and same for bk
 
     // M summed over phases
     mpreal m = 0;
