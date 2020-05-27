@@ -31,8 +31,17 @@ from acorrs_wrapper import set_mpreal_precision
 # Applies to instances created afterwards
 set_mpreal_precision(48)
 
+# For automatic fftchunk determination
+def closest_power_of_two(x):
+    a = 2**int(ceil(log2(x)))
+    b = 2**int(floor(log2(x)))
+    if abs(a-x)<abs(x-b):   # Biased towards smallest value if dead center
+        return a
+    else:
+        return b
+
 # Returns the proper class. Fancy name: factory. Ghetto name: wrapper wrapper.
-def ACorrUpTo(k, data, phi=False, fft=None, fftchunk='auto', k_fft=16, k_fft_factor=16):
+def ACorrUpTo(k, data, phi=False, fft=None, fftchunk='auto', k_fft=32, k_fft_factor=16):
     if type(data) is ndarray:
         dtype = data.dtype.name
     else:
@@ -48,7 +57,8 @@ def ACorrUpTo(k, data, phi=False, fft=None, fftchunk='auto', k_fft=16, k_fft_fac
             fft = False
 
     if fftchunk == 'auto':
-        fftchunk = k_fft_factor*k
+        # Since fftwlen is a power of 2, fftchunk is optimal if it is too
+        fftchunk = closest_power_of_two(k_fft_factor*k)
 
     if fft and k>fftchunk:
         fftchunk = int(2**ceil(log2(k))) # Ceil to power of two
