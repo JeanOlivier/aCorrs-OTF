@@ -32,7 +32,7 @@ from acorrs_wrapper import set_mpreal_precision
 set_mpreal_precision(32)
 
 # Returns the proper class. Fancy name: factory. Ghetto name: wrapper wrapper.
-def ACorrUpTo(k, data, phi=False, fft=None, fftchunk=8192, k_fft=44):
+def ACorrUpTo(k, data, phi=False, fft=None, fftchunk='auto', k_fft=16, k_fft_factor=16):
     if type(data) is ndarray:
         dtype = data.dtype.name
     else:
@@ -46,6 +46,9 @@ def ACorrUpTo(k, data, phi=False, fft=None, fftchunk=8192, k_fft=44):
             fft = True
         else:
             fft = False
+
+    if fftchunk == 'auto':
+        fftchunk = k_fft_factor*k
 
     if fft and k>fftchunk:
         fftchunk = int(2**ceil(log2(k))) # Ceil to power of two
