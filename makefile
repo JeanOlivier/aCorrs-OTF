@@ -17,7 +17,7 @@ ifneq ($(OS),Windows_NT)
 endif
 
 # libraries
-LDLIBS = -lmpfr $(OS:Windows_NT=-L /c/Anaconda2/libs/ -l python27) $(PYINCL) 
+LDLIBS = -lmpfr $(OS:Windows_NT=-L /c/Anaconda2/ -l python27) $(PYINCL) 
 
 # directories
 OBJ_DIR = obj
