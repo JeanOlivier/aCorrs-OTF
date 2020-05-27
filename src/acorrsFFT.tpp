@@ -50,11 +50,12 @@ The number of time we accumulate in Fourier space is limited for accuracy.
    This is better or similar to the error induced when casting the final result to double
    It is thus considered acceptable
 7. Kahan summation doesn't seem to help much and slows things down
+8. 3/4 factor added empirically to avoid errors on rk[0]
 */
 template <class T>
 inline int ACorrUpToFFT<T>::compute_accumul_max(){
     uint64_t buff_max = max(abs(numeric_limits<T>::min()), abs(numeric_limits<T>::max()));
-    int ret = (int)min((((uint64_t)1)<<53)/((uint64_t)fftwlen*buff_max*buff_max),(uint64_t)4096);
+    int ret = (int)min((((uint64_t)1)<<53)/((uint64_t)fftwlen*buff_max*buff_max),(uint64_t)4096)*3/4;
     return ret;
 }
 
