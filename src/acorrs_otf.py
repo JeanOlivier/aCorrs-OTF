@@ -29,7 +29,7 @@ import acorrs_wrapper
 from acorrs_wrapper import set_mpreal_precision
 
 # Applies to instances created afterwards
-set_mpreal_precision(32)
+set_mpreal_precision(48)
 
 # Returns the proper class. Fancy name: factory. Ghetto name: wrapper wrapper.
 def ACorrUpTo(k, data, phi=False, fft=None, fftchunk='auto', k_fft=16, k_fft_factor=16):
