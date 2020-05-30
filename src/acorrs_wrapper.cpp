@@ -177,7 +177,6 @@ void declare_fftclass(py::module &m, std::string typestr) {
             } 
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
-        // Using the type of n instead of m because of &m voodoo. Always the same. 
         .def_property_readonly("len", [](Class& self) {return self.len;})
         .def_property_readonly("fftwlen", [](Class& self) {return self.fftwlen;})
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
