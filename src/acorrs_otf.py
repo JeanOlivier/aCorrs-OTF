@@ -113,5 +113,19 @@ def check_ak_phi(a,k):
     gfk = a.gfk.sum(axis=0)[k]
     return (rfk-((mf-bfk)*(mfpk-gfk))/nfk)/nfk
 
+# Converts an ACorrUpTo object to a dict with the same information
+def a_to_dict_phi(a):
+    ks = 'bk block_processed chunk_processed chunk_size gk k m n res rk'.split(' ')
+    return {k:getattr(a,k) for k in ks}
+    
+# Converts an ACorrUpToFFT object to a dict with the same information
+def a_to_dict_fft(a):
+    ks = 'bk block_processed chunk_processed chunk_size counter_max fftwlen gk k len m n res rk'.split(' ')
+    return {k:getattr(a,k) for k in ks}    
+
+# Converts an ACorrUpToPhi object to a dict with the same information
+def a_to_dict_phi(a):
+    ks = 'bfk bk block_processed chunk_processed chunk_size gfk gk k l mf n nfk res res0 rfk'.split(' ')
+    return {k:getattr(a,k) for k in ks}
 
     
