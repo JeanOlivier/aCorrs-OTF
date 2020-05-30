@@ -1,7 +1,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/embed.h>
+#include <pybind11/stl.h>
 #include <string.h>
+#include <vector>
 #include "acorrs.hpp"
 #include "acorrsFFT.hpp"
 #include "acorrsPhi.hpp"
@@ -11,6 +13,8 @@ namespace py = pybind11;
 
 //TODO: Minimize redundant code by somehow integrating both declaration classes?
 
+// Equivalent to "from decimal import Decimal"
+py::object Decimal = py::module::import("decimal").attr("Decimal");
 
 template<typename T>
 void declare_class(py::module &m, std::string typestr) {
@@ -63,53 +67,37 @@ void declare_class(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.rk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.rk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){values.push_back(Decimal(self.rk_mpfr[i].toString()));}
+            return py::array(py::cast(values)); // auto saving my life here
             }
         )
         .def_property_readonly("bk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.bk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.bk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){values.push_back(Decimal(self.bk_mpfr[i].toString()));}
+            return py::array(py::cast(values)); // auto saving my life here
             }
         )
         .def_property_readonly("gk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.gk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.gk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){values.push_back(Decimal(self.gk_mpfr[i].toString()));}
+            return py::array(py::cast(values)); // auto saving my life here
             }
         )
+        .def_property_readonly("m", [](Class& self){
+            // Equivalent to "from decimal import Decimal"
+            return Decimal(self.m_mpfr.toString());
+            }
+        )
+        .def_property_readonly("n", [](Class& self){
+            // Equivalent to "from decimal import Decimal"
+            return Decimal(self.n_mpfr.toString());
+            } 
+        )
         .def_property_readonly("k", [](Class& self) {return self.k;})
-        .def_property_readonly("m", [](Class& self) {return (decltype(self.m)) self.m_mpfr;})
-        .def_property_readonly("n", [](Class& self) {return (decltype(self.n)) self.n_mpfr;})
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
         .def_property_readonly("chunk_size", [](Class& self) {return self.chunk_size;})
         .def_property_readonly("block_processed", [](Class& self) {return self.block_processed;})
@@ -168,54 +156,38 @@ void declare_fftclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.rk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.rk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){values.push_back(Decimal(self.rk_mpfr[i].toString()));}
+            return py::array(py::cast(values)); // auto saving my life here
             }
         )
         .def_property_readonly("bk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.bk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.bk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){values.push_back(Decimal(self.bk_mpfr[i].toString()));}
+            return py::array(py::cast(values)); // auto saving my life here
             }
         )
         .def_property_readonly("gk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.gk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.gk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){values.push_back(Decimal(self.gk_mpfr[i].toString()));}
+            return py::array(py::cast(values)); // auto saving my life here
             }
+        )
+        .def_property_readonly("m", [](Class& self){
+            // Equivalent to "from decimal import Decimal"
+            return Decimal(self.m_mpfr.toString());
+            }
+        )
+        .def_property_readonly("n", [](Class& self){
+            // Equivalent to "from decimal import Decimal"
+            return Decimal(self.n_mpfr.toString());
+            } 
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
         // Using the type of n instead of m because of &m voodoo. Always the same. 
-        .def_property_readonly("m", [](Class& self) {return (decltype(self.n)) self.m_mpfr;})
-        .def_property_readonly("n", [](Class& self) {return (decltype(self.n)) self.n_mpfr;})
         .def_property_readonly("len", [](Class& self) {return self.len;})
         .def_property_readonly("fftwlen", [](Class& self) {return self.fftwlen;})
         .def_property_readonly("chunk_processed", [](Class& self) {return self.chunk_processed;})
@@ -305,116 +277,77 @@ void declare_phiclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rfk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.rfk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.lambda*self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.lambda*self.k; i++){ret[i] = (accumul_t)self.rfk_mpfr[i];}
-            auto res = py::array_t<accumul_t>(
-                {self.lambda*self.k,}, // shape
-                {sizeof(accumul_t),},   // C-style contiguous strides for double
-                ret,                    // the data pointer
-                free_when_done);        // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.lambda*self.k; i++){
+                values.push_back(Decimal(self.rfk_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
             res.resize({self.lambda, self.k});
             return res;
             }
         )
         .def_property_readonly("nfk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.nfk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.lambda*self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.lambda*self.k; i++){ret[i] = (accumul_t)self.Nfk_mpfr[i];}
-            auto res = py::array_t<accumul_t>(
-                {self.lambda*self.k,}, // shape
-                {sizeof(accumul_t),},   // C-style contiguous strides for double
-                ret,                    // the data pointer
-                free_when_done);        // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.lambda*self.k; i++){
+                values.push_back(Decimal(self.Nfk_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
             res.resize({self.lambda, self.k});
             return res;
             }
-        )        
+        )
         .def_property_readonly("bfk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.bfk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.lambda*self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.lambda*self.k; i++){ret[i] = (accumul_t)self.bfk_mpfr[i];}
-            auto res = py::array_t<accumul_t>(
-                {self.lambda*self.k,}, // shape
-                {sizeof(accumul_t),},   // C-style contiguous strides for double
-                ret,                    // the data pointer
-                free_when_done);        // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.lambda*self.k; i++){
+                values.push_back(Decimal(self.bfk_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
             res.resize({self.lambda, self.k});
             return res;
             }
         )
         .def_property_readonly("gfk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.gfk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.lambda*self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.lambda*self.k; i++){ret[i] = (accumul_t)self.gfk_mpfr[i];}
-            auto res = py::array_t<accumul_t>(
-                {self.lambda*self.k,}, // shape
-                {sizeof(accumul_t),},   // C-style contiguous strides for double
-                ret,                    // the data pointer
-                free_when_done);        // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.lambda*self.k; i++){
+                values.push_back(Decimal(self.gfk_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
             res.resize({self.lambda, self.k});
             return res;
             }
         )
         .def_property_readonly("bk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.bk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.bk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){
+                values.push_back(Decimal(self.bk_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
+            return res;
             }
         )
         .def_property_readonly("gk", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.gk)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.k]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.k; i++){ret[i] = (accumul_t)self.gk_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.k,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.k; i++){
+                values.push_back(Decimal(self.gk_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
+            return res;
             }
         )
         .def_property_readonly("mf", [](Class& self){
-            typedef typename std::remove_pointer<decltype(self.mf)>::type accumul_t;
-            accumul_t *ret = new accumul_t [self.lambda]();
-            py::capsule free_when_done(ret, [](void *f) {
-                accumul_t *ret = reinterpret_cast<accumul_t *>(f);
-                delete[] ret;
-                });
-            for (int i=0; i<self.lambda; i++){ret[i] = (accumul_t)self.mf_mpfr[i];}
-            return py::array_t<accumul_t>(
-                {self.lambda,},          // shape
-                {sizeof(accumul_t),},  // C-style contiguous strides for double
-                ret,                // the data pointer
-                free_when_done);    // numpy array references this parent
+            // Equivalent to "from decimal import Decimal"
+            vector<py::object> values;
+            for (int i=0; i<self.lambda; i++){
+                values.push_back(Decimal(self.mf_mpfr[i].toString()));
+                }
+            auto res = py::array(py::cast(values)); // auto saving my life here
+            return res;
             }
         )
         .def_property_readonly("k", [](Class& self) {return self.k;})
