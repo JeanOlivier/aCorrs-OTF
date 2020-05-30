@@ -67,33 +67,28 @@ void declare_class(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.rk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("bk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.bk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("gk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.gk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("m", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             return Decimal(self.m_mpfr.toString());
             }
         )
         .def_property_readonly("n", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             return Decimal(self.n_mpfr.toString());
             } 
         )
@@ -156,33 +151,28 @@ void declare_fftclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.rk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("bk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.bk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("gk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.gk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("m", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             return Decimal(self.m_mpfr.toString());
             }
         )
         .def_property_readonly("n", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             return Decimal(self.n_mpfr.toString());
             } 
         )
@@ -277,7 +267,6 @@ void declare_phiclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("rfk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.lambda*self.k; i++){values.push_back(Decimal(self.rfk_mpfr[i].toString()));}
             auto res = py::array(py::cast(values)); // auto saving my life here
@@ -286,7 +275,6 @@ void declare_phiclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("nfk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.lambda*self.k; i++){values.push_back(Decimal(self.Nfk_mpfr[i].toString()));}
             auto res = py::array(py::cast(values)); // auto saving my life here
@@ -295,7 +283,6 @@ void declare_phiclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("bfk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.lambda*self.k; i++){values.push_back(Decimal(self.bfk_mpfr[i].toString()));}
             auto res = py::array(py::cast(values)); // auto saving my life here
@@ -304,7 +291,6 @@ void declare_phiclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("gfk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.lambda*self.k; i++){values.push_back(Decimal(self.gfk_mpfr[i].toString()));}
             auto res = py::array(py::cast(values)); // auto saving my life here
@@ -313,21 +299,18 @@ void declare_phiclass(py::module &m, std::string typestr) {
             }
         )
         .def_property_readonly("bk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.bk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("gk", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.k; i++){values.push_back(Decimal(self.gk_mpfr[i].toString()));}
             return py::array(py::cast(values));
             }
         )
         .def_property_readonly("mf", [](Class& self){
-            // Equivalent to "from decimal import Decimal"
             vector<py::object> values;
             for (int i=0; i<self.lambda; i++){values.push_back(Decimal(self.mf_mpfr[i].toString()));}
             return py::array(py::cast(values));
