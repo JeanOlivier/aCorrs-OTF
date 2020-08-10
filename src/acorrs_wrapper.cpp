@@ -1,13 +1,12 @@
+#include "acorrs.hpp"
+#include "acorrsFFT.hpp"
+#include "acorrsPhi.hpp"
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <string.h>
 #include <vector>
-#include "acorrs.hpp"
-#include "acorrsFFT.hpp"
-#include "acorrsPhi.hpp"
-
 
 namespace py = pybind11;
 

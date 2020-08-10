@@ -11,7 +11,7 @@ SHRFLAGS = -fPIC -shared
 FFTWFLAGS = -lfftw3 -lm
 
 # includes
-PYINCL = `$(PY) -m pybind11 --includes`
+PYINCL := $(shell $(PY) -m pybind11 --includes)
 ifneq ($(OS),Windows_NT)
     PYINCL += -I /usr/include/python2.7/
 endif
