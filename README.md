@@ -61,6 +61,15 @@ Output:
 
 ```
 
+## Benchmark example:
+```python
+from pylab import *
+from acorrs_otf import ACorrUpTo
+x = randint(-2**15, 2**15-1, 1*2**30, int16)
+%timeit a = ACorrUpTo(129, x, phi=8, fft=False)
+%timeit a = ACorrUpTo(65, x, phi=0, fft=True)
+```
+
 ## Compiling
 
 Simply execute `make all`.
