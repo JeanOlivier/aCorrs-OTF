@@ -26,11 +26,8 @@
 #include <limits>
 
 
-#ifdef _WIN32_WINNT
-    #include "mpreal.h"
-#else
-    #include <mpreal.h>
-#endif
+#include "mpreal.h"
+
 
 
 #define __STDC_FORMAT_MACROS
